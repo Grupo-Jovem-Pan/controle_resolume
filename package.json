@@ -1,0 +1,8 @@
+{
+  "name": "resolume-html-osc",
+  "version": "2.0.0",
+  "dependencies": {
+    "express": "^4.18.2",
+    "osc": "^2.4.4"
+  }
+}

@@ -1,0 +1,148 @@
+body {
+  background:#111;
+  color:#fff;
+  font-family:sans-serif;
+  margin:0;
+  overflow:hidden;
+}
+
+#topbar {
+  position:fixed;
+  top:10px;
+  left:10px;
+  display:flex;
+  gap:10px;
+  z-index:10000;
+}
+
+#stage {
+  position:relative;
+  width:100vw;
+  height:100vh;
+}
+
+/* FRAME */
+.frame {
+  position:absolute;
+  background:#000;
+  border:3px solid #ff0055;
+  min-width:260px;
+  min-height:200px;
+  resize: both;
+  overflow:auto;
+}
+
+body:not(.edit-mode) .frame {
+  resize:none;
+}
+
+.frame.active {
+  box-shadow:0 0 20px #00ff88;
+}
+
+.frame h2 {
+  margin:0;
+  padding:10px;
+  cursor:move;
+  user-select:none;
+}
+
+/* BOTÕES */
+.frame-content {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  padding:10px;
+}
+
+.button {
+  background:#222;
+  border:1px solid #555;
+  width:80px;
+  height:80px;
+  position:relative;
+  cursor:pointer;
+}
+
+.button img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.col-input {
+  display:none;
+  position:absolute;
+  bottom:4px;
+  right:4px;
+  width:44px;
+}
+
+body.edit-mode .col-input {
+  display:block;
+}
+
+/* MODAL */
+.modal {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:20000;
+}
+
+.modal.hidden {
+  display:none;
+}
+
+.modal-content {
+  background:#222;
+  padding:20px;
+  border-radius:8px;
+  min-width:300px;
+}
+
+.modal-content label {
+  display:flex;
+  justify-content:space-between;
+  margin:10px 0;
+}
+
+.modal-actions {
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+/* ICON PICKER */
+.icon-chooser {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.95);
+  display:grid;
+  grid-template-columns:repeat(auto-fill,100px);
+  gap:10px;
+  padding:20px;
+  z-index:99999;
+}
+
+.icon-chooser img {
+  width:100%;
+  cursor:pointer;
+}
+
+#presetBar {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: #111;
+  border-bottom: 1px solid #333;
+}
+
+#presetBar select,
+#presetBar button {
+  padding: 6px;
+  font-size: 14px;
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Resolume Controller</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="presetBar">
+  
+
+<div id="stage"></div>
+
+<div id="topbar">
+<select id="presetSelect">
+    <option value="">-- selecionar preset --</option>
+  </select>
+
+  <button onclick="loadPresetFromSelect()">📂 Carregar</button>
+
+  <button onclick="savePresetOverwrite()">💾 Salvar</button>
+
+  <button onclick="savePresetAs()">🆕 Salvar Novo</button>
+
+  <button onclick="openFrameModal()">➕ Frame</button>
+  <button onclick="addButton()">➕ Botão</button>
+  <button id="editToggle">⚙️ EDIT</button>
+
+</div>
+
+<!-- MODAL FRAME -->
+<div id="frameModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Novo Frame</h3>
+
+    <label>
+      Nome:
+      <input id="frameName" type="text">
+    </label>
+
+    <label>
+      Cor:
+      <input id="frameColor" type="color" value="#ff0055">
+    </label>
+
+    <div class="modal-actions">
+      <button onclick="createFrame()">Criar</button>
+      <button onclick="closeFrameModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
