@@ -2,51 +2,61 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Resolume Controller</title>
+  <title>Resolume Controller API</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="presetBar">
-  
+<div id="topbar">
+  <div class="group">
+    <select id="presetSelect"><option value="">-- selecionar preset --</option></select>
+    <button onclick="loadPresetFromSelect()">📂 Carregar</button>
+    <button onclick="savePresetOverwrite()">💾 Salvar</button>
+    <button onclick="savePresetAs()">🆕 Novo</button>
+  </div>
+  <div class="group">
+    <button onclick="openFrameModal()">➕ Frame</button>
+    <button onclick="openButtonModal()">➕ Botão</button>
+    <button id="editToggle" class="edit-btn">⚙️ EDIT</button>
+  </div>
+</div>
 
 <div id="stage"></div>
 
-<div id="topbar">
-<select id="presetSelect">
-    <option value="">-- selecionar preset --</option>
-  </select>
+<div id="trash" class="hidden">🗑️ ARRASTE PARA EXCLUIR</div>
 
-  <button onclick="loadPresetFromSelect()">📂 Carregar</button>
-
-  <button onclick="savePresetOverwrite()">💾 Salvar</button>
-
-  <button onclick="savePresetAs()">🆕 Salvar Novo</button>
-
-  <button onclick="openFrameModal()">➕ Frame</button>
-  <button onclick="addButton()">➕ Botão</button>
-  <button id="editToggle">⚙️ EDIT</button>
-
-</div>
-
-<!-- MODAL FRAME -->
 <div id="frameModal" class="modal hidden">
   <div class="modal-content">
     <h3>Novo Frame</h3>
-
-    <label>
-      Nome:
+    <div class="input-field">
+      <label>Nome:</label>
       <input id="frameName" type="text">
-    </label>
-
-    <label>
-      Cor:
+    </div>
+    <div class="input-field">
+      <label>Cor:</label>
       <input id="frameColor" type="color" value="#ff0055">
-    </label>
-
+    </div>
     <div class="modal-actions">
       <button onclick="createFrame()">Criar</button>
-      <button onclick="closeFrameModal()">Cancelar</button>
+      <button onclick="closeModal('frameModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="buttonModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Configurar Botão</h3>
+    <div class="input-field">
+      <label>Coluna:</label>
+      <input id="btnCol" type="number" value="1">
+    </div>
+    <div class="input-field">
+      <label>Linha (Opcional):</label>
+      <input id="btnLayer" type="number" placeholder="Vazio = Coluna">
+    </div>
+    <div id="iconGrid" class="icon-grid"></div>
+    <div class="modal-actions">
+      <button onclick="closeModal('buttonModal')">Cancelar</button>
     </div>
   </div>
 </div>

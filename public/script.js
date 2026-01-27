@@ -1,418 +1,162 @@
 const stage = document.getElementById("stage");
+const trash = document.getElementById("trash");
 let currentFrame = null;
 let editMode = false;
 
-/* =====================
-   EDIT / SHOW
-===================== */
+// Modo EDIT
 document.getElementById("editToggle").onclick = () => {
   editMode = !editMode;
   document.body.classList.toggle("edit-mode", editMode);
-  document.getElementById("editToggle").innerText =
-    editMode ? "▶ SHOW" : "⚙️ EDIT";
-
-  document.querySelectorAll(".button").forEach(btn => {
-    btn.draggable = editMode;
-  });
+  trash.classList.toggle("hidden", !editMode);
+  document.getElementById("editToggle").innerText = editMode ? "▶ SHOW" : "⚙️ EDIT";
 };
 
-/* =====================
-   FRAME MODAL
-===================== */
-function openFrameModal() {
-  document.getElementById("frameModal").classList.remove("hidden");
-}
+function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+function openFrameModal() { document.getElementById("frameModal").classList.remove("hidden"); }
 
-function closeFrameModal() {
-  document.getElementById("frameModal").classList.add("hidden");
-}
-
-/* =====================
-   FRAME
-===================== */
-function createFrame() {
-  const name = document.getElementById("frameName").value;
-  const color = document.getElementById("frameColor").value;
-  if (!name) return alert("Nome obrigatório");
-
-  closeFrameModal();
-
-  const frame = document.createElement("div");
-  frame.className = "frame";
-  frame.style.left = "100px";
-  frame.style.top = "100px";
-  frame.style.borderColor = color;
-
-  const title = document.createElement("h2");
-  title.innerText = name;
-  title.style.background = color;
-
-  const content = document.createElement("div");
-  content.className = "frame-content";
-
-  frame.append(title, content);
-  stage.appendChild(frame);
-
-  frame.addEventListener("mousedown", () =>
-    selectFrame(frame, content)
-  );
-
-  selectFrame(frame, content);
-  enableFrameDrag(frame, title);
-
-  document.getElementById("frameName").value = "";
-}
-
-/* =====================
-   FRAME SELECT
-===================== */
-function selectFrame(frame, content) {
-  document.querySelectorAll(".frame").forEach(f =>
-    f.classList.remove("active")
-  );
-  frame.classList.add("active");
-  currentFrame = content;
-}
-
-/* =====================
-   DRAG FRAME
-===================== */
-function enableFrameDrag(frame, handle) {
-  let offsetX, offsetY, dragging = false;
-
-  handle.addEventListener("mousedown", e => {
-    if (!editMode) return;
-    dragging = true;
-    offsetX = e.clientX - frame.offsetLeft;
-    offsetY = e.clientY - frame.offsetTop;
-    e.stopPropagation();
-  });
-
-  document.addEventListener("mousemove", e => {
-    if (!dragging) return;
-    frame.style.left = e.clientX - offsetX + "px";
-    frame.style.top = e.clientY - offsetY + "px";
-  });
-
-  document.addEventListener("mouseup", () => {
-    dragging = false;
-  });
-}
-
-/* =====================
-   BOTÃO
-===================== */
-async function addButton() {
-  if (!currentFrame) return alert("Selecione um frame");
-
-  const col = prompt("Coluna");
-  if (!col) return;
-
+async function openButtonModal() {
+  if (!currentFrame) return alert("Selecione um Frame clicando nele!");
+  const grid = document.getElementById("iconGrid");
+  grid.innerHTML = "Carregando...";
+  document.getElementById("buttonModal").classList.remove("hidden");
+  
   const icons = await fetch("/icons").then(r => r.json());
-  const chooser = document.createElement("div");
-  chooser.className = "icon-chooser";
-
+  grid.innerHTML = "";
   icons.forEach(icon => {
     const img = document.createElement("img");
-    img.src = "icons/" + icon;
+    img.src = `icons/${icon}`;
     img.onclick = () => {
-      createButton(col, img.src);
-      chooser.remove();
+      createButton(document.getElementById("btnCol").value, document.getElementById("btnLayer").value, img.src);
+      closeModal("buttonModal");
     };
-    chooser.appendChild(img);
+    grid.appendChild(img);
   });
-
-  document.body.appendChild(chooser);
 }
 
-function createButton(column, img) {
+// DISPARO VIA SERVIDOR NODE (Resolve CORS)
+async function triggerResolume(layer, col) {
+  try {
+    await fetch("/trigger", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ layer, col })
+    });
+  } catch (e) {
+    console.error("Erro ao enviar comando");
+  }
+}
+
+function createFrame(data = null) {
+  const name = data ? data.name : document.getElementById("frameName").value;
+  const color = data ? data.color : document.getElementById("frameColor").value;
+  const frame = document.createElement("div");
+  frame.className = "frame";
+  frame.style.left = data ? data.left : "100px";
+  frame.style.top = data ? data.top : "100px";
+  frame.style.borderColor = color;
+  const title = document.createElement("h2");
+  title.innerText = name; title.style.background = color;
+  const content = document.createElement("div");
+  content.className = "frame-content";
+  frame.append(title, content);
+  stage.appendChild(frame);
+  frame.addEventListener("mousedown", () => {
+    document.querySelectorAll(".frame").forEach(f => f.classList.remove("active"));
+    frame.classList.add("active");
+    currentFrame = content;
+  });
+  enableDrag(frame, title, true);
+  if(!data) closeModal("frameModal");
+  return content;
+}
+
+function createButton(col, layer, imgSrc, targetContent = null) {
   const btn = document.createElement("div");
   btn.className = "button";
-  btn.dataset.column = column;
-  btn.draggable = editMode;
-
-  btn.innerHTML = `
-    <img src="${img}">
-    <input class="col-input" type="number" value="${column}">
-  `;
-
-  btn.querySelector(".col-input").oninput = e => {
-    btn.dataset.column = e.target.value;
-  };
-
+  btn.dataset.col = col; btn.dataset.layer = layer || "";
+  const label = (layer && layer !== "") ? `L${layer} C${col}` : `COL ${col}`;
+  btn.innerHTML = `<img src="${imgSrc}"><div class="btn-badge">${label}</div>`;
   btn.onclick = () => {
-    if (editMode) return;
-    fetch("/column", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ column: btn.dataset.column })
-    });
+    if (editMode) {
+      const nCol = prompt("Nova Coluna:", btn.dataset.col);
+      const nLay = prompt("Nova Linha:", btn.dataset.layer);
+      if(nCol !== null) btn.dataset.col = nCol;
+      if(nLay !== null) btn.dataset.layer = nLay;
+      btn.querySelector(".btn-badge").innerText = (btn.dataset.layer !== "") ? `L${btn.dataset.layer} C${btn.dataset.col}` : `COL ${btn.dataset.col}`;
+    } else {
+      triggerResolume(btn.dataset.layer, btn.dataset.col);
+    }
   };
-
-  currentFrame.appendChild(btn);
+  enableDrag(btn, btn, false);
+  (targetContent || currentFrame).appendChild(btn);
 }
 
-/* =====================
-   DRAG BOTÕES
-===================== */
-document.addEventListener("dragstart", e => {
-  if (!editMode) return;
-  if (!e.target.classList.contains("button")) return;
-  e.target.classList.add("dragging");
-});
-
-document.addEventListener("dragend", e => {
-  if (e.target.classList.contains("button")) {
-    e.target.classList.remove("dragging");
-  }
-});
-
-document.addEventListener("dragover", e => {
-  if (!editMode) return;
-
-  const container = e.target.closest(".frame-content");
-  if (!container) return;
-
-  e.preventDefault();
-
-  const dragging = document.querySelector(".button.dragging");
-  if (!dragging) return;
-
-  const buttons = [...container.querySelectorAll(".button:not(.dragging)")];
-
-  const next = buttons.find(btn => {
-    const box = btn.getBoundingClientRect();
-    return e.clientX < box.left + box.width / 2;
+function enableDrag(el, handle, isFrame) {
+  let ox, oy, dragging = false;
+  handle.onmousedown = e => {
+    if (!editMode) return;
+    dragging = true; ox = e.clientX - el.offsetLeft; oy = e.clientY - el.offsetTop;
+    el.style.zIndex = 1000; e.stopPropagation();
+  };
+  document.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    el.style.left = (e.clientX - ox) + "px"; el.style.top = (e.clientY - oy) + "px";
+    const tr = trash.getBoundingClientRect();
+    trash.classList.toggle("drag-over", e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom);
   });
+  document.addEventListener("mouseup", e => {
+    if (!dragging) return;
+    dragging = false;
+    const tr = trash.getBoundingClientRect();
+    if (e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom) el.remove();
+    trash.classList.remove("drag-over");
+  });
+}
 
-  if (next) container.insertBefore(dragging, next);
-  else container.appendChild(dragging);
-});
-
-/* =====================
-   PRESETS
-===================== */
+// --- PERSISTÊNCIA ---
 function serializeLayout() {
-  return [...document.querySelectorAll(".frame")].map(frame => ({
-    name: frame.querySelector("h2").innerText,
-    color: frame.querySelector("h2").style.background,
-    left: frame.style.left,
-    top: frame.style.top,
-    buttons: [...frame.querySelectorAll(".button")].map(btn => ({
-      column: btn.dataset.column,
-      icon: btn.querySelector("img").src
-    }))
+  return [...document.querySelectorAll(".frame")].map(f => ({
+    name: f.querySelector("h2").innerText,
+    color: f.querySelector("h2").style.background,
+    left: f.style.left, top: f.style.top,
+    buttons: [...f.querySelectorAll(".button")].map(b => ({ col: b.dataset.col, layer: b.dataset.layer, icon: b.querySelector("img").src }))
   }));
 }
 
-function clearStage() {
-  document.querySelectorAll(".frame").forEach(f => f.remove());
-  currentFrame = null;
+async function savePresetAs() {
+  const name = prompt("Nome do novo preset:");
+  if (!name) return;
+  await fetch("/presets/save", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({name, data: serializeLayout()}) });
+  refreshPresetList();
 }
 
-function savePreset() {
-  const name = prompt("Nome do preset");
-  if (!name) return;
-
-  fetch("/presets/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name,
-      data: serializeLayout()
-    })
-  }).then(() => alert("Preset salvo"));
+async function savePresetOverwrite() {
+  const name = document.getElementById("presetSelect").value;
+  if (!name) return alert("Selecione um preset para salvar");
+  await fetch("/presets/save", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({name, data: serializeLayout()}) });
+  alert("Salvo!");
 }
 
-async function loadPreset() {
-
-  const presets = await fetch("/presets").then(r => r.json());
-  if (!presets.length) return alert("Nenhum preset encontrado");
-
-  const name = prompt("Preset:\n" + presets.join("\n"));
+async function loadPresetFromSelect() {
+  const name = document.getElementById("presetSelect").value;
   if (!name) return;
-
   const data = await fetch("/presets/load/" + name).then(r => r.json());
-  clearStage();
-
-  data.forEach(frameData => {
-    const frame = document.createElement("div");
-    frame.className = "frame";
-    frame.style.left = frameData.left;
-    frame.style.top = frameData.top;
-    frame.style.borderColor = frameData.color;
-
-    const title = document.createElement("h2");
-    title.innerText = frameData.name;
-    title.style.background = frameData.color;
-
-    const content = document.createElement("div");
-    content.className = "frame-content";
-
-    frame.append(title, content);
-    stage.appendChild(frame);
-
-    frame.addEventListener("mousedown", () =>
-      selectFrame(frame, content)
-    );
-
-    enableFrameDrag(frame, title);
-
-    frameData.buttons.forEach(btnData => {
-      const btn = document.createElement("div");
-      btn.className = "button";
-      btn.dataset.column = btnData.column;
-      btn.draggable = editMode;
-
-      btn.innerHTML = `
-        <img src="${btnData.icon}">
-        <input class="col-input" type="number" value="${btnData.column}">
-      `;
-
-      btn.querySelector(".col-input").oninput = e => {
-        btn.dataset.column = e.target.value;
-      };
-
-      btn.onclick = () => {
-        if (editMode) return;
-        fetch("/column", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ column: btn.dataset.column })
-        });
-      };
-
-      content.appendChild(btn);
-    });
+  stage.innerHTML = "";
+  data.forEach(fData => {
+    const cont = createFrame(fData);
+    fData.buttons.forEach(b => createButton(b.col, b.layer, b.icon, cont));
   });
 }
 
-
-
-/* =====================
-   PRESET UI
-===================== */
-
 async function refreshPresetList() {
   const select = document.getElementById("presetSelect");
-  select.innerHTML = `<option value="">-- selecionar preset --</option>`;
-
   const presets = await fetch("/presets").then(r => r.json());
-  presets.forEach(name => {
+  select.innerHTML = '<option value="">-- selecionar preset --</option>';
+  presets.forEach(p => {
     const opt = document.createElement("option");
-    opt.value = name;
-    opt.innerText = name;
+    opt.value = p; opt.innerText = p;
     select.appendChild(opt);
   });
 }
 
-// carrega automaticamente ao abrir
-window.addEventListener("load", refreshPresetList);
-
-/* =====================
-   LOAD
-===================== */
-
-async function loadPresetFromSelect() {
-  const select = document.getElementById("presetSelect");
-  const name = select.value;
-  if (!name) return alert("Selecione um preset");
-
-  const data = await fetch("/presets/load/" + name).then(r => r.json());
-  clearStage();
-
-  data.forEach(frameData => {
-    const frame = document.createElement("div");
-    frame.className = "frame";
-    frame.style.left = frameData.left;
-    frame.style.top = frameData.top;
-    frame.style.borderColor = frameData.color;
-
-    const title = document.createElement("h2");
-    title.innerText = frameData.name;
-    title.style.background = frameData.color;
-
-    const content = document.createElement("div");
-    content.className = "frame-content";
-
-    frame.append(title, content);
-    stage.appendChild(frame);
-
-    frame.addEventListener("mousedown", () =>
-      selectFrame(frame, content)
-    );
-
-    enableFrameDrag(frame, title);
-
-    frameData.buttons.forEach(btnData => {
-      const btn = document.createElement("div");
-      btn.className = "button";
-      btn.dataset.column = btnData.column;
-      btn.draggable = editMode;
-
-      btn.innerHTML = `
-        <img src="${btnData.icon}">
-        <input class="col-input" type="number" value="${btnData.column}">
-      `;
-
-      btn.querySelector(".col-input").oninput = e => {
-        btn.dataset.column = e.target.value;
-      };
-
-      btn.onclick = () => {
-        if (editMode) return;
-        fetch("/column", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ column: btn.dataset.column })
-        });
-      };
-
-      content.appendChild(btn);
-    });
-  });
-}
-
-/* =====================
-   SAVE
-===================== */
-
-function savePresetOverwrite() {
-  const select = document.getElementById("presetSelect");
-  const name = select.value;
-  if (!name) return alert("Nenhum preset selecionado");
-
-  fetch("/presets/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name,
-      data: serializeLayout()
-    })
-  }).then(() => alert("Preset atualizado"));
-}
-
-function savePresetAs() {
-  const name = prompt("Nome do novo preset");
-  if (!name) return;
-
-  fetch("/presets/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name,
-      data: serializeLayout()
-    })
-  }).then(() => {
-    refreshPresetList();
-    document.getElementById("presetSelect").value = name;
-    alert("Novo preset salvo");
-  });
-}
-
-/* =====================
-   GLOBAL (SEGURANÇA)
-===================== */
-window.loadPresetFromSelect = loadPresetFromSelect;
-window.savePresetOverwrite = savePresetOverwrite;
-window.savePresetAs = savePresetAs;
+window.onload = refreshPresetList;

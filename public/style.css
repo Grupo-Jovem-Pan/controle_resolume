@@ -1,148 +1,78 @@
 body {
-  background:#111;
-  color:#fff;
-  font-family:sans-serif;
-  margin:0;
-  overflow:hidden;
+  background: #111 !important;
+  color: #eee;
+  font-family: sans-serif;
+  margin: 0;
+  overflow: hidden;
+  width: 100vw; height: 100vh;
 }
 
 #topbar {
-  position:fixed;
-  top:10px;
-  left:10px;
-  display:flex;
-  gap:10px;
-  z-index:10000;
-}
-
-#stage {
-  position:relative;
-  width:100vw;
-  height:100vh;
-}
-
-/* FRAME */
-.frame {
-  position:absolute;
-  background:#000;
-  border:3px solid #ff0055;
-  min-width:260px;
-  min-height:200px;
-  resize: both;
-  overflow:auto;
-}
-
-body:not(.edit-mode) .frame {
-  resize:none;
-}
-
-.frame.active {
-  box-shadow:0 0 20px #00ff88;
-}
-
-.frame h2 {
-  margin:0;
-  padding:10px;
-  cursor:move;
-  user-select:none;
-}
-
-/* BOTÕES */
-.frame-content {
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  padding:10px;
-}
-
-.button {
-  background:#222;
-  border:1px solid #555;
-  width:80px;
-  height:80px;
-  position:relative;
-  cursor:pointer;
-}
-
-.button img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.col-input {
-  display:none;
-  position:absolute;
-  bottom:4px;
-  right:4px;
-  width:44px;
-}
-
-body.edit-mode .col-input {
-  display:block;
-}
-
-/* MODAL */
-.modal {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.7);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:20000;
-}
-
-.modal.hidden {
-  display:none;
-}
-
-.modal-content {
-  background:#222;
-  padding:20px;
-  border-radius:8px;
-  min-width:300px;
-}
-
-.modal-content label {
-  display:flex;
-  justify-content:space-between;
-  margin:10px 0;
-}
-
-.modal-actions {
-  display:flex;
-  justify-content:flex-end;
-  gap:10px;
-}
-
-/* ICON PICKER */
-.icon-chooser {
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.95);
-  display:grid;
-  grid-template-columns:repeat(auto-fill,100px);
-  gap:10px;
-  padding:20px;
-  z-index:99999;
-}
-
-.icon-chooser img {
-  width:100%;
-  cursor:pointer;
-}
-
-#presetBar {
+  background: #000;
+  height: 60px;
   display: flex;
-  gap: 6px;
-  padding: 6px;
-  background: #111;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
   border-bottom: 1px solid #333;
 }
 
-#presetBar select,
-#presetBar button {
-  padding: 6px;
-  font-size: 14px;
+.group { display: flex; gap: 8px; }
+
+#stage { position: relative; width: 100%; height: calc(100vh - 60px); }
+
+/* FRAME */
+.frame {
+  position: absolute;
+  background: rgba(20, 20, 20, 0.9);
+  border: 3px solid #ff0055;
+  min-width: 250px; min-height: 150px;
+  display: flex; flex-direction: column;
 }
+
+.frame h2 { margin: 0; padding: 10px; font-size: 14px; text-align: center; }
+
+.frame-content {
+  padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; flex-grow: 1;
+}
+
+/* BOTÕES */
+.button {
+  width: 70px; height: 70px; background: #222;
+  border: 1px solid #444; position: relative; cursor: pointer;
+}
+.button img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.btn-badge {
+  position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8);
+  font-size: 10px; text-align: center; color: #00ff88; display: none;
+}
+body.edit-mode .btn-badge { display: block; }
+
+/* MODAL */
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  display: flex; align-items: center; justify-content: center; z-index: 5000;
+}
+.modal.hidden { display: none !important; }
+.modal-content { background: #222; padding: 25px; border-radius: 8px; width: 350px; border: 1px solid #444; }
+
+.input-field { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.icon-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  max-height: 200px; overflow-y: auto; margin: 15px 0; background: #111; padding: 5px;
+}
+.icon-grid img { width: 100%; cursor: pointer; border: 1px solid transparent; }
+.icon-grid img:hover { border-color: #ff0055; }
+
+/* TRASH */
+#trash {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  width: 280px; height: 60px; border: 2px dashed #ff4444;
+  display: flex; align-items: center; justify-content: center;
+  color: #ff4444; border-radius: 30px; background: rgba(255,0,0,0.1);
+}
+#trash.drag-over { background: #ff4444; color: #fff; }
+
+button { padding: 8px 12px; cursor: pointer; background: #333; color: white; border: none; border-radius: 4px; }
+.edit-btn { border: 1px solid #ff0055; }
+body.edit-mode .edit-btn { background: #ff0055; }

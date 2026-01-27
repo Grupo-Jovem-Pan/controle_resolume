@@ -2,6 +2,7 @@
   "name": "resolume-html-osc",
   "version": "2.0.0",
   "dependencies": {
+    "axios": "^1.13.4",
     "express": "^4.18.2",
     "osc": "^2.4.4"
   }
