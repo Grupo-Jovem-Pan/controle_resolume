@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "name": "Panico",
+    "color": "rgb(255, 0, 85)",
+    "left": "93px",
+    "top": "25px",
+    "width": "254px",
+    "height": "277px",
+    "buttons": [
+      {
+        "col": "3",
+        "layer": "",
+        "icon": "http://127.0.0.1:3200/icons/2.png"
+      }
+    ]
+  },
+  {
+    "name": "Panico2",
+    "color": "rgb(255, 0, 85)",
+    "left": "552px",
+    "top": "25px",
+    "width": "519px",
+    "height": "270px",
+    "buttons": [
+      {
+        "col": "3",
+        "layer": "2",
+        "icon": "http://127.0.0.1:3200/icons/5.png"
+      }
+    ]
+  }
+]
