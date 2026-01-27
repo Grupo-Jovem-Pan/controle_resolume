@@ -4,7 +4,7 @@ let currentFrame = null;
 let editMode = false;
 let maxZ = 100;
 
-// --- DISPARO RESOLUME (CORS BYPASS VIA NO-CORS) ---
+// --- DISPARO RESOLUME ---
 async function triggerResolume(layer, col) {
     const RESOLUME_API = "http://127.0.0.1:8080/api/v1";
     let url = (layer && layer.trim() !== "") 
@@ -30,8 +30,7 @@ function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
 function openFrameModal() { document.getElementById("frameModal").classList.remove("hidden"); }
 
 async function openButtonModal() {
-    if (!currentFrame) return alert("Selecione um Frame clicando nele primeiro!");
-    
+    if (!currentFrame) return alert("Selecione um Frame clicando nele!");
     const grid = document.getElementById("iconGrid");
     grid.innerHTML = "Carregando...";
     document.getElementById("buttonModal").classList.remove("hidden");
@@ -48,27 +47,22 @@ async function openButtonModal() {
             };
             grid.appendChild(img);
         });
-    } catch (e) {
-        grid.innerHTML = "Erro ao carregar ícones.";
-    }
+    } catch (e) { grid.innerHTML = "Erro ao carregar ícones."; }
 }
 
-// --- CRIAÇÃO DE ELEMENTOS ---
+// --- CRIAÇÃO ---
 function createFrame(data = null) {
     const name = data ? data.name : document.getElementById("frameName").value;
     const color = data ? data.color : document.getElementById("frameColor").value;
     
     const frame = document.createElement("div");
     frame.className = "frame";
-    
-    // Posição e Tamanho
     frame.style.left = data ? data.left : "100px";
     frame.style.top = data ? data.top : "100px";
     frame.style.width = data ? data.width : "300px";
     frame.style.height = data ? data.height : "200px";
     frame.style.borderColor = color;
 
-    // Alça para arrastar (Handle)
     const handle = document.createElement("div");
     handle.className = "drag-handle";
     handle.style.background = color;
@@ -80,7 +74,6 @@ function createFrame(data = null) {
     frame.append(handle, content);
     stage.appendChild(frame);
 
-    // Seleção e Gerenciamento de Camadas (z-index)
     frame.addEventListener("mousedown", () => {
         maxZ++;
         frame.style.zIndex = maxZ;
@@ -89,7 +82,7 @@ function createFrame(data = null) {
         currentFrame = content;
     });
 
-    enableDrag(frame, handle);
+    enableDrag(frame, handle, true); // true para Frame
     if(!data) closeModal("frameModal");
     return content;
 }
@@ -103,7 +96,7 @@ function createButton(col, layer, imgSrc, targetContent = null) {
     const label = (layer && layer !== "") ? `L${layer} C${col}` : `COL ${col}`;
     btn.innerHTML = `<img src="${imgSrc}"><div class="btn-badge">${label}</div>`;
 
-    btn.onclick = () => {
+    btn.onclick = (e) => {
         if (editMode) {
             const nCol = prompt("Nova Coluna:", btn.dataset.col);
             const nLay = prompt("Nova Linha:", btn.dataset.layer);
@@ -115,20 +108,35 @@ function createButton(col, layer, imgSrc, targetContent = null) {
         }
     };
 
-    enableDrag(btn, btn); // Botões também podem ser arrastados para o lixo
+    enableDrag(btn, btn, false); // false para Botão
     const parent = targetContent || currentFrame;
     if (parent) parent.appendChild(btn);
 }
 
-// --- LÓGICA DE ARRASTAR ---
-function enableDrag(el, handle) {
+// --- LÓGICA DE ARRASTAR (TRANSFERÊNCIA ENTRE FRAMES) ---
+function enableDrag(el, handle, isFrame) {
     let ox, oy, dragging = false;
-    
+    let originalParent = null;
+
     handle.onmousedown = e => {
         if (!editMode) return;
         dragging = true;
+        
+        // Se for botão, tirar do fluxo para mover livremente
+        if (!isFrame) {
+            originalParent = el.parentElement;
+            const rect = el.getBoundingClientRect();
+            el.style.position = "fixed";
+            el.style.width = rect.width + "px";
+            el.style.height = rect.height + "px";
+            el.style.left = rect.left + "px";
+            el.style.top = rect.top + "px";
+            stage.appendChild(el); // Move temporariamente para o stage
+        }
+
         ox = e.clientX - el.offsetLeft;
         oy = e.clientY - el.offsetTop;
+        el.style.zIndex = 20000;
         e.stopPropagation();
     };
 
@@ -137,10 +145,9 @@ function enableDrag(el, handle) {
         el.style.left = (e.clientX - ox) + "px";
         el.style.top = (e.clientY - oy) + "px";
 
-        // Feedback visual da lixeira
+        // Feedback visual lixeira
         const tr = trash.getBoundingClientRect();
-        const overTrash = e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom;
-        trash.classList.toggle("drag-over", overTrash);
+        trash.classList.toggle("drag-over", e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom);
     });
 
     document.addEventListener("mouseup", e => {
@@ -150,12 +157,36 @@ function enableDrag(el, handle) {
         const tr = trash.getBoundingClientRect();
         if (e.clientX > tr.left && e.clientX < tr.right && e.clientY > tr.top && e.clientY < tr.bottom) {
             el.remove();
+            trash.classList.remove("drag-over");
+            return;
         }
-        trash.classList.remove("drag-over");
+
+        // Se for botão, verificar se caiu em outro frame
+        if (!isFrame) {
+            el.style.display = "none"; // Esconde p/ detectar o que está embaixo
+            let dropTarget = document.elementFromPoint(e.clientX, e.clientY);
+            el.style.display = "block";
+
+            let targetContent = dropTarget?.closest(".frame-content");
+
+            if (targetContent) {
+                // Remove estilos de "fixed" e coloca no novo frame
+                el.style.position = "relative";
+                el.style.left = "0";
+                el.style.top = "0";
+                targetContent.appendChild(el);
+            } else {
+                // Volta para o frame original se soltar no vazio
+                el.style.position = "relative";
+                el.style.left = "0";
+                el.style.top = "0";
+                originalParent.appendChild(el);
+            }
+        }
     });
 }
 
-// --- PERSISTÊNCIA (PRESETS) ---
+// --- PERSISTÊNCIA ---
 function serializeLayout() {
     return [...document.querySelectorAll(".frame")].map(f => ({
         name: f.querySelector("h2").innerText,
@@ -172,28 +203,18 @@ function serializeLayout() {
     }));
 }
 
+async function savePresetOverwrite() {
+    const name = document.getElementById("presetSelect").value;
+    if (!name) return alert("Selecione um preset!");
+    await fetch("/presets/save", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({name, data: serializeLayout()}) });
+    alert("Salvo!");
+}
+
 async function savePresetAs() {
     const name = prompt("Nome do novo preset:");
     if (!name) return;
-    const data = serializeLayout();
-    await fetch("/presets/save", { 
-        method: "POST", 
-        headers: {"Content-Type":"application/json"}, 
-        body: JSON.stringify({name, data}) 
-    });
+    await fetch("/presets/save", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({name, data: serializeLayout()}) });
     refreshPresetList();
-}
-
-async function savePresetOverwrite() {
-    const name = document.getElementById("presetSelect").value;
-    if (!name) return alert("Selecione um preset para salvar.");
-    const data = serializeLayout();
-    await fetch("/presets/save", { 
-        method: "POST", 
-        headers: {"Content-Type":"application/json"}, 
-        body: JSON.stringify({name, data}) 
-    });
-    alert("Preset atualizado!");
 }
 
 async function loadPresetFromSelect() {
