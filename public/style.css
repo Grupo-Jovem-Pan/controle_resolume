@@ -182,3 +182,23 @@ button {
 
 .edit-btn { border: 1px solid #ff0055; }
 body.edit-mode .edit-btn { background: #ff0055; }
+
+.btn-nav {
+    background: #333;
+    color: #00ffcc;
+    border: 1px solid #00ffcc;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+.btn-nav:hover {
+    background: #00ffcc;
+    color: #000;
+}
+/* Estilo para marcar botões da coluna ativa */
+.button.active-col {
+    box-shadow: 0 0 15px #00ffcc;
+    border-color: #00ffcc;
+}

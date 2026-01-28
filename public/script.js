@@ -5,14 +5,50 @@ let editMode = false;
 let maxZ = 100;
 let editingElement = null; 
 
-// --- DISPARO RESOLUME ---
+let lastColumn = 1; // Armazena a última coluna disparada
+
+// --- FUNÇÃO DE NAVEGAÇÃO ---
+function changeColumn(delta) {
+    // Calcula a nova coluna (garante que não seja menor que 1)
+    let targetCol = parseInt(lastColumn) + delta;
+    if (targetCol < 1) targetCol = 1;
+
+    console.log(`Navegando para coluna: ${targetCol}`);
+    
+    // Dispara a coluna no Resolume (passando null no layer para disparar a coluna inteira)
+    triggerResolume(null, targetCol);
+}
+
+// --- DISPARO RESOLUME (ATUALIZADA) ---
 async function triggerResolume(layer, col) {
+    // SEMPRE atualiza a última coluna clicada
+    lastColumn = parseInt(col); 
+    
     const RESOLUME_API = "http://127.0.0.1:8080/api/v1";
     let url = (layer && layer.trim() !== "") 
         ? `${RESOLUME_API}/composition/layers/${layer}/clips/${col}/connect`
         : `${RESOLUME_API}/composition/columns/${col}/connect`;
-    try { await fetch(url, { method: 'POST', mode: 'no-cors' }); } catch (e) { console.error("Resolume Offline"); }
+
+    try {
+        await fetch(url, { method: 'POST', mode: 'no-cors' });
+        
+        // Feedback visual opcional: destacar botões da coluna ativa
+        document.querySelectorAll(".button").forEach(b => {
+            b.classList.toggle("active-col", b.dataset.col == lastColumn);
+        });
+    } catch (e) {
+        console.error("Erro ao conectar com Resolume.");
+    }
 }
+
+// // --- DISPARO RESOLUME ---
+// async function triggerResolume(layer, col) {
+//     const RESOLUME_API = "http://127.0.0.1:8080/api/v1";
+//     let url = (layer && layer.trim() !== "") 
+//         ? `${RESOLUME_API}/composition/layers/${layer}/clips/${col}/connect`
+//         : `${RESOLUME_API}/composition/columns/${col}/connect`;
+//     try { await fetch(url, { method: 'POST', mode: 'no-cors' }); } catch (e) { console.error("Resolume Offline"); }
+// }
 
 // --- CONTROLE DE INTERFACE ---
 document.getElementById("editToggle").onclick = () => {
