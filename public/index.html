@@ -27,7 +27,7 @@
 
 <div id="frameModal" class="modal hidden">
   <div class="modal-content">
-    <h3>Novo Frame</h3>
+    <h3 id="frameModalTitle">Novo Frame</h3>
     <div class="input-field">
       <label>Nome:</label>
       <input id="frameName" type="text">
@@ -37,7 +37,7 @@
       <input id="frameColor" type="color" value="#ff0055">
     </div>
     <div class="modal-actions">
-      <button onclick="createFrame()">Criar</button>
+      <button id="btnFrameConfirm" class="btn-main" onclick="confirmFrameAction()">Criar</button>
       <button onclick="closeModal('frameModal')">Cancelar</button>
     </div>
   </div>
@@ -45,15 +45,16 @@
 
 <div id="buttonModal" class="modal hidden">
   <div class="modal-content">
-    <h3>Configurar Botão</h3>
+    <h3 id="buttonModalTitle">Configurar Botão</h3>
     <div class="input-field">
       <label>Coluna:</label>
       <input id="btnCol" type="number" value="1">
     </div>
     <div class="input-field">
       <label>Linha (Opcional):</label>
-      <input id="btnLayer" type="number" placeholder="Vazio = Coluna">
+      <input id="btnLayer" type="number" placeholder="Vazio = Coluna toda">
     </div>
+    <p id="iconGridLabel">Selecione o Ícone:</p>
     <div id="iconGrid" class="icon-grid"></div>
     <div class="modal-actions">
       <button onclick="closeModal('buttonModal')">Cancelar</button>
