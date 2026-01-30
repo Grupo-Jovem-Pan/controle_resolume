@@ -204,7 +204,7 @@ body.edit-mode .edit-btn { background: #ff0055; }
 }
 
 .btn-take {
-    background: linear-gradient(135deg, #ff4b2b 0%, #ff416c 100%); /* Gradiente vibrante */
+    background: linear-gradient(135deg, #0022ff 0%, #0022ff 100%); /* Gradiente vibrante */
     color: white;
     border: none;
     padding: 10px 20px;
