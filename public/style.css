@@ -202,3 +202,27 @@ body.edit-mode .edit-btn { background: #ff0055; }
     box-shadow: 0 0 15px #00ffcc;
     border-color: #00ffcc;
 }
+
+.btn-take {
+    background: linear-gradient(135deg, #ff4b2b 0%, #ff416c 100%); /* Gradiente vibrante */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+}
+
+.btn-take:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 65, 108, 0.5);
+    filter: brightness(1.1);
+}
+
+.btn-take i, .btn-take svg {
+    margin-right: 10px;
+}

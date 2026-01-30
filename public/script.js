@@ -20,9 +20,9 @@ function changeColumn(delta) {
 }
 
 // --- DISPARO RESOLUME (ATUALIZADA) ---
-async function triggerResolume(layer, col) {
+async function triggerResolume(layer, col, isChangeColums = true) {
     // SEMPRE atualiza a última coluna clicada
-    lastColumn = parseInt(col); 
+    if (isChangeColums) lastColumn = parseInt(col); 
     
     const RESOLUME_API = "http://127.0.0.1:8080/api/v1";
     let url = (layer && layer.trim() !== "") 
@@ -133,6 +133,12 @@ async function openButtonModal(isEdit = false) {
         };
         grid.appendChild(img);
     });
+}
+
+async function takevMixResolume(){
+    triggerResolume(null, 2, false);
+    lastColumn = 2;
+    fetch("http://172.16.2.38:8088/api/?Function=OverlayInput4In&Input=ART_BANCADA_01.gtzip", { mode: 'no-cors' });
 }
 
 /* =====================

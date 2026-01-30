@@ -1,9 +1,25 @@
 {
   "name": "resolume-html-osc",
   "version": "2.0.0",
+  "scripts": {
+    "test": "echo 'Nenhum teste configurado, continuando...' && exit 0",
+    "start": "node server.js",
+    "dev": "nodemon npm server.js -s"
+  },
+  "nodemonConfig": {
+    "ext": "js,html",
+    "ignore": [
+      "*.json"
+    ],
+    "delay": "3",
+    "execMap": {
+      "ts": "ts-node"
+    }
+  },  
   "dependencies": {
     "axios": "^1.13.4",
     "express": "^4.18.2",
+    "nodemon": "^3.1.11",
     "osc": "^2.4.4"
   }
 }
